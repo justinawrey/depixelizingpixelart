@@ -1,10 +1,14 @@
 package depixelize
 
+import "image/color"
+
 // latticeGraph is a graph representing the pixels of an image
 type latticeGraph struct{}
 
 // pixel is a 1x1 grouping of pixels
-type pixel struct{}
+type pixel struct {
+	color color.Color
+}
 
 // pixel2 is a 2x2 grouping of pixels
 type pixel2 struct{}
@@ -14,8 +18,6 @@ type pixel3 struct{}
 
 // pixel8 is a 8x8 grouping of pixels
 type pixel8 struct{}
-
-func (lg *latticeGraph) getWeight(p2 *pixel2) {}
 
 // curvesHeuristic implements the curves heuristic and returns its vote weight.
 // See https://johanneskopf.de/publications/pixelart/paper/pixel.pdf
