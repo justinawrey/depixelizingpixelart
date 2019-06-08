@@ -15,7 +15,7 @@ type pixel3 struct{}
 // pixel8 is a 8x8 grouping of pixels
 type pixel8 struct{}
 
-func (lg *latticeGraph) getWeight(p2 *pixel2) {}
+func (l *latticeGraph) getWeight(p2 *pixel2) {}
 
 // curvesHeuristic implements the curves heuristic and returns its vote weight.
 // See https://johanneskopf.de/publications/pixelart/paper/pixel.pdf
