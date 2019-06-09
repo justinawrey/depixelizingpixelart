@@ -2,8 +2,28 @@ package depixelize
 
 import "image/color"
 
-// latticeGraph is a graph representing the pixels of an image
-type latticeGraph struct{}
+// edge directions
+const (
+	n = iota
+	ne
+	e
+	se
+	s
+	sw
+	w
+	nw
+)
+
+type node struct {
+	pixel *pixel
+	edges [8]bool
+}
+
+func (n *node) initEdges() {
+	for i := 0; i < 8; i++ {
+		n.edges[i] = true
+	}
+}
 
 // pixel is a 1x1 grouping of pixels
 type pixel struct {
@@ -21,12 +41,12 @@ type pixel8 struct{}
 
 // curvesHeuristic implements the curves heuristic and returns its vote weight.
 // See https://johanneskopf.de/publications/pixelart/paper/pixel.pdf
-func curvesHeuristic(p2 *pixel2, lg *latticeGraph) (weight int) { return 0 }
+func curvesHeuristic() (weight int) { return 0 }
 
 // sparsePixelsHeuristic implements the sparse pixels heuristic and returns its vote weight.
 // See https://johanneskopf.de/publications/pixelart/paper/pixel.pdf
-func sparsePixelsHeuristic(p2 *pixel2, window *pixel8) (weight int) { return 0 }
+func sparsePixelsHeuristic() (weight int) { return 0 }
 
 // islandsHeuristic implements the islands heuristic and returns its vote weight.
 // See https://johanneskopf.de/publications/pixelart/paper/pixel.pdf
-func islandsHeuristic(p2 *pixel2) (weight int) { return 0 }
+func islandsHeuristic() (weight int) { return 0 }
