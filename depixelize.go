@@ -86,20 +86,18 @@ func (g graph) disconnectDissimilar() {
 	})
 }
 
+func (g graph) resolveNode2Cases() {
+	g.traverse2(func(n2 *node2) {
+		n2.resolve()
+	})
+}
+
 type node struct {
 	parent graph
 	pixel  *pixel
 	edges  [8]bool
 	i      int
 	j      int
-}
-
-type node2 struct {
-	parent graph
-	tl     *node
-	tr     *node
-	bl     *node
-	br     *node
 }
 
 func (n *node) getAdjacentNode(dir int) *node {
@@ -133,6 +131,73 @@ func (n *node) initEdges() {
 
 func (n *node) setParent(g graph) {
 	n.parent = g
+}
+
+type node2 struct {
+	parent graph
+	tl     *node
+	tr     *node
+	bl     *node
+	br     *node
+}
+
+func (n2 *node2) isFullyConnected() bool {
+	//TODO:
+	return true
+}
+
+func (n2 *node2) isProblematic() bool {
+	//TODO:
+	return true
+}
+
+func (n2 *node2) curvesHeuristic(dir int) int {
+	// TODO:
+	return 1
+}
+
+func (n2 *node2) sparsePixelsHeuristic(dir int) int {
+	// TODO:
+	return 1
+}
+
+func (n2 *node2) islandsHeuristic(dir int) int {
+	// TODO:
+	return 1
+}
+
+func (n2 *node2) getWeight(dir int) int {
+	return n2.curvesHeuristic(dir) + n2.sparsePixelsHeuristic(dir) + n2.islandsHeuristic(dir)
+}
+
+func (n2 *node2) removeSEDiagonal() {
+	n2.tl.setEdge(se, false)
+}
+
+func (n2 *node2) removeNEDiagonal() {
+	n2.bl.setEdge(ne, false)
+}
+
+func (n2 *node2) removeDiagonals() {
+	n2.removeSEDiagonal()
+	n2.removeNEDiagonal()
+}
+
+func (n2 *node2) resolve() {
+	if n2.isFullyConnected() {
+		n2.removeDiagonals()
+	} else if n2.isProblematic() {
+		seWeight := n2.getWeight(se)
+		neWeight := n2.getWeight(ne)
+
+		if seWeight == neWeight {
+			n2.removeDiagonals()
+		} else if seWeight > neWeight {
+			n2.removeNEDiagonal()
+		} else {
+			n2.removeSEDiagonal()
+		}
+	}
 }
 
 // pixel is a 1x1 grouping of pixels
