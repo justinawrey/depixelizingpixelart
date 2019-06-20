@@ -121,7 +121,8 @@ func (n *node) getAdjacentNode(dir int) *node {
 }
 
 func (n *node) hasEdge(dir int) bool {
-	return n.edges[dir]
+	neighbour := n.getAdjacentNode(dir)
+	return neighbour != nil && n.edges[dir]
 }
 
 func (n *node) setEdge(dir int, to bool) {
@@ -147,6 +148,16 @@ func (n *node) setParent(g graph) {
 	n.parent = g
 }
 
+func (n *node) valence() int {
+	var count int
+	for i := 0; i < 8; i++ {
+		if n.hasEdge(i) {
+			count++
+		}
+	}
+	return count
+}
+
 type node2 struct {
 	parent graph
 	tl     *node
@@ -169,23 +180,37 @@ func (n2 *node2) isProblematic() bool {
 	return !tl.hasEdge(e) && !tr.hasEdge(s) && !br.hasEdge(w) && !bl.hasEdge(n) && tl.hasEdge(se) && bl.hasEdge(ne)
 }
 
-func (n2 *node2) curvesHeuristic(dir int) int {
+func (n2 *node2) curvesHeuristic(first, second *node, dir int) (weight int) {
 	// TODO:
 	return 1
 }
 
-func (n2 *node2) sparsePixelsHeuristic(dir int) int {
+func (n2 *node2) sparsePixelsHeuristic(first, second *node, dir int) (weight int) {
 	// TODO:
 	return 1
 }
 
-func (n2 *node2) islandsHeuristic(dir int) int {
-	// TODO:
-	return 1
+func (n2 *node2) islandsHeuristic(first, second *node, dir int) int {
+	if first.valence() == 1 || second.valence() == 1 {
+		return 5
+	}
+	return 0
 }
 
 func (n2 *node2) getWeight(dir int) int {
-	return n2.curvesHeuristic(dir) + n2.sparsePixelsHeuristic(dir) + n2.islandsHeuristic(dir)
+	tl, tr, bl, br := n2.unfold()
+	var first *node
+	var second *node
+
+	if dir == se {
+		first = tl
+		second = br
+	} else if dir == ne {
+		first = bl
+		second = tr
+	}
+
+	return n2.curvesHeuristic(first, second, dir) + n2.sparsePixelsHeuristic(first, second, dir) + n2.islandsHeuristic(first, second, dir)
 }
 
 func (n2 *node2) removeSEDiagonal() {
