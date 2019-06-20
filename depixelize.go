@@ -120,6 +120,10 @@ func (n *node) getAdjacentNode(dir int) *node {
 	return nil
 }
 
+func (n *node) hasEdge(dir int) bool {
+	return n.edges[dir]
+}
+
 func (n *node) setEdge(dir int, to bool) {
 	if neighbour := n.getAdjacentNode(dir); neighbour != nil {
 		n.edges[dir] = to
@@ -151,14 +155,18 @@ type node2 struct {
 	br     *node
 }
 
+func (n2 *node2) unfold() (tl, tr, bl, br *node) {
+	return n2.tl, n2.tr, n2.bl, n2.br
+}
+
 func (n2 *node2) isFullyConnected() bool {
-	//TODO:
-	return true
+	tl, tr, bl, br := n2.unfold()
+	return tl.hasEdge(e) && tr.hasEdge(s) && br.hasEdge(w) && bl.hasEdge(n) && tl.hasEdge(se) && bl.hasEdge(ne)
 }
 
 func (n2 *node2) isProblematic() bool {
-	//TODO:
-	return true
+	tl, tr, bl, br := n2.unfold()
+	return !tl.hasEdge(e) && !tr.hasEdge(s) && !br.hasEdge(w) && !bl.hasEdge(n) && tl.hasEdge(se) && bl.hasEdge(ne)
 }
 
 func (n2 *node2) curvesHeuristic(dir int) int {
