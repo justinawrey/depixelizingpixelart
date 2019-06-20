@@ -67,7 +67,17 @@ func (g graph) traverse(onEach func(n *node, i, j int)) {
 }
 
 func (g graph) traverse2(onEach func(n2 *node2)) {
-	//TODO:
+	for j := 0; j < g.h-1; j++ {
+		for i := 0; i < g.w-1; i++ {
+			tl := g.contents[j][i]
+			tr := tl.getAdjacentNode(e)
+			bl := tl.getAdjacentNode(s)
+			br := tl.getAdjacentNode(se)
+			n2 := &node2{g, tl, tr, bl, br}
+
+			onEach(n2)
+		}
+	}
 }
 
 func (g graph) hasNodeAt(i, j int) bool {
