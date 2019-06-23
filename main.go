@@ -32,10 +32,11 @@ func main() {
 			{p(c.White), p(c.White), p(c.Black), p(c.Black), p(c.White), p(c.White), p(c.Black), p(c.Black), p(c.White), p(c.White)},
 			{p(c.White), p(c.White), p(c.White), p(c.White), p(c.Black), p(c.Black), p(c.White), p(c.White), p(c.White), p(c.White)},
 		},
-		H:    10,
-		W:    10,
-		HRes: 300,
-		WRes: 300,
+		H:                10,
+		W:                10,
+		HRes:             300,
+		WRes:             300,
+		ShowPixelBorders: false,
 	}
 
 	// 1. each node has a reference to its parent graph

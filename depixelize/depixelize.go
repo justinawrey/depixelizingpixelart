@@ -54,11 +54,12 @@ var opposites = map[int]connectionInfo{
 }
 
 type Graph struct {
-	Contents [][]*Node
-	H        int
-	W        int
-	HRes     int
-	WRes     int
+	Contents         [][]*Node
+	H                int
+	W                int
+	HRes             int
+	WRes             int
+	ShowPixelBorders bool
 }
 
 func (g Graph) Traverse(onEach func(n *Node, i, j int)) {
@@ -108,10 +109,12 @@ func (g Graph) ResolveNode2Cases() {
 	})
 }
 
+// ColorModel implements image.Image
 func (g Graph) ColorModel() color.Model {
 	return color.RGBAModel
 }
 
+// Bounds implements image.Image
 func (g Graph) Bounds() image.Rectangle {
 	return image.Rectangle{
 		Min: image.Point{
@@ -125,13 +128,23 @@ func (g Graph) Bounds() image.Rectangle {
 	}
 }
 
+// At implements image.Image
 func (g Graph) At(x, y int) color.Color {
 	pxXSize := g.WRes / g.W
 	pxYSize := g.HRes / g.H
-	atX := x / pxXSize
-	atY := y / pxYSize
+	scaledX := x / pxXSize
+	scaledY := y / pxYSize
+	node := g.Contents[scaledY][scaledX]
 
-	return g.Contents[atY][atX].Pixel.Color
+	if g.ShowPixelBorders &&
+		(x%pxXSize == 0 ||
+			y%pxYSize == 0 ||
+			x == g.WRes-1 ||
+			y == g.HRes-1) {
+		return color.RGBA{255, 0, 0, 255}
+	}
+
+	return node.Pixel.Color
 }
 
 type Node struct {
