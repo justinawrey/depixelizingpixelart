@@ -1,6 +1,7 @@
 package depixelize
 
 import (
+	"image"
 	"image/color"
 	"math"
 )
@@ -11,9 +12,9 @@ const (
 	vThresh = 0.02352941176
 )
 
-func dissimilar(n1, n2 *node) bool {
-	y1, u1, v1 := n1.pixel.yuv()
-	y2, u2, v2 := n2.pixel.yuv()
+func dissimilar(n1, n2 *Node) bool {
+	y1, u1, v1 := n1.Pixel.yuv()
+	y2, u2, v2 := n2.Pixel.yuv()
 	y3, u3, v3 := float64(y1), float64(u1), float64(v1)
 	y4, u4, v4 := float64(y2), float64(u2), float64(v2)
 
@@ -52,24 +53,26 @@ var opposites = map[int]connectionInfo{
 	nw: connectionInfo{se, -1, -1},
 }
 
-type graph struct {
-	contents [][]*node
-	h        int
-	w        int
+type Graph struct {
+	Contents [][]*Node
+	H        int
+	W        int
+	HRes     int
+	WRes     int
 }
 
-func (g graph) traverse(onEach func(n *node, i, j int)) {
-	for j, row := range g.contents {
+func (g Graph) Traverse(onEach func(n *Node, i, j int)) {
+	for j, row := range g.Contents {
 		for i, node := range row {
 			onEach(node, i, j)
 		}
 	}
 }
 
-func (g graph) traverse2(onEach func(n2 *node2)) {
-	for j := 0; j < g.h-1; j++ {
-		for i := 0; i < g.w-1; i++ {
-			tl := g.contents[j][i]
+func (g Graph) traverse2(onEach func(n2 *node2)) {
+	for j := 0; j < g.H-1; j++ {
+		for i := 0; i < g.W-1; i++ {
+			tl := g.Contents[j][i]
 			tr := tl.getAdjacentNode(e)
 			bl := tl.getAdjacentNode(s)
 			br := tl.getAdjacentNode(se)
@@ -80,12 +83,12 @@ func (g graph) traverse2(onEach func(n2 *node2)) {
 	}
 }
 
-func (g graph) hasNodeAt(i, j int) bool {
-	return j < g.h && i < g.w
+func (g Graph) hasNodeAt(i, j int) bool {
+	return j < g.H && i < g.W
 }
 
-func (g graph) disconnectDissimilar() {
-	g.traverse(func(n *node, i, j int) {
+func (g Graph) DisconnectDissimilar() {
+	g.Traverse(func(n *Node, i, j int) {
 		for i := 0; i < 8; i++ {
 			if neighbour := n.getAdjacentNode(i); neighbour != nil {
 				if dissimilar(n, neighbour) {
@@ -96,36 +99,62 @@ func (g graph) disconnectDissimilar() {
 	})
 }
 
-func (g graph) resolveNode2Cases() {
+func (g Graph) ResolveNode2Cases() {
 	g.traverse2(func(n2 *node2) {
 		n2.resolve()
 	})
 }
 
-type node struct {
-	parent graph
-	pixel  *pixel
+func (g Graph) ColorModel() color.Model {
+	return color.RGBAModel
+}
+
+func (g Graph) Bounds() image.Rectangle {
+	return image.Rectangle{
+		Min: image.Point{
+			X: 0,
+			Y: 0,
+		},
+		Max: image.Point{
+			X: g.WRes,
+			Y: g.HRes,
+		},
+	}
+}
+
+func (g Graph) At(x, y int) color.Color {
+	pxXSize := g.WRes / g.W
+	pxYSize := g.HRes / g.H
+	atX := x / pxXSize
+	atY := y / pxYSize
+
+	return g.Contents[atY][atX].Pixel.Color
+}
+
+type Node struct {
+	parent Graph
+	Pixel  *Pixel
 	edges  [8]bool
 	i      int
 	j      int
 }
 
-func (n *node) getAdjacentNode(dir int) *node {
+func (n *Node) getAdjacentNode(dir int) *Node {
 	connection := opposites[dir]
 	i, j := connection.ix+n.i, connection.jx+n.j
 
 	if n.parent.hasNodeAt(i, j) {
-		return n.parent.contents[j][i]
+		return n.parent.Contents[j][i]
 	}
 	return nil
 }
 
-func (n *node) hasEdge(dir int) bool {
+func (n *Node) hasEdge(dir int) bool {
 	neighbour := n.getAdjacentNode(dir)
 	return neighbour != nil && n.edges[dir]
 }
 
-func (n *node) setEdge(dir int, to bool) {
+func (n *Node) setEdge(dir int, to bool) {
 	if neighbour := n.getAdjacentNode(dir); neighbour != nil {
 		n.edges[dir] = to
 		oppDir := opposites[dir].dir
@@ -133,22 +162,22 @@ func (n *node) setEdge(dir int, to bool) {
 	}
 }
 
-func (n *node) setLocation(i, j int) {
+func (n *Node) SetLocation(i, j int) {
 	n.i = i
 	n.j = j
 }
 
-func (n *node) initEdges() {
+func (n *Node) InitEdges() {
 	for i := 0; i < 8; i++ {
 		n.edges[i] = true
 	}
 }
 
-func (n *node) setParent(g graph) {
+func (n *Node) SetParent(g Graph) {
 	n.parent = g
 }
 
-func (n *node) valence() int {
+func (n *Node) valence() int {
 	var count int
 	for i := 0; i < 8; i++ {
 		if n.hasEdge(i) {
@@ -159,14 +188,14 @@ func (n *node) valence() int {
 }
 
 type node2 struct {
-	parent graph
-	tl     *node
-	tr     *node
-	bl     *node
-	br     *node
+	parent Graph
+	tl     *Node
+	tr     *Node
+	bl     *Node
+	br     *Node
 }
 
-func (n2 *node2) unfold() (tl, tr, bl, br *node) {
+func (n2 *node2) unfold() (tl, tr, bl, br *Node) {
 	return n2.tl, n2.tr, n2.bl, n2.br
 }
 
@@ -180,17 +209,17 @@ func (n2 *node2) isProblematic() bool {
 	return !tl.hasEdge(e) && !tr.hasEdge(s) && !br.hasEdge(w) && !bl.hasEdge(n) && tl.hasEdge(se) && bl.hasEdge(ne)
 }
 
-func (n2 *node2) curvesHeuristic(first, second *node, dir int) (weight int) {
+func (n2 *node2) curvesHeuristic(first, second *Node, dir int) (weight int) {
 	// TODO:
 	return 1
 }
 
-func (n2 *node2) sparsePixelsHeuristic(first, second *node, dir int) (weight int) {
+func (n2 *node2) sparsePixelsHeuristic(first, second *Node, dir int) (weight int) {
 	// TODO:
 	return 1
 }
 
-func (n2 *node2) islandsHeuristic(first, second *node, dir int) int {
+func (n2 *node2) islandsHeuristic(first, second *Node, dir int) int {
 	if first.valence() == 1 || second.valence() == 1 {
 		return 5
 	}
@@ -199,8 +228,8 @@ func (n2 *node2) islandsHeuristic(first, second *node, dir int) int {
 
 func (n2 *node2) getWeight(dir int) int {
 	tl, tr, bl, br := n2.unfold()
-	var first *node
-	var second *node
+	var first *Node
+	var second *Node
 
 	if dir == se {
 		first = tl
@@ -244,13 +273,13 @@ func (n2 *node2) resolve() {
 }
 
 // pixel is a 1x1 grouping of pixels
-type pixel struct {
-	color color.Color
+type Pixel struct {
+	Color color.Color
 }
 
 // yuv returns the YUV colors of pixel p
-func (p *pixel) yuv() (y, u, v uint8) {
-	r, g, b, _ := p.color.RGBA()
+func (p *Pixel) yuv() (y, u, v uint8) {
+	r, g, b, _ := p.Color.RGBA()
 	r8, g8, b8 := uint8(r), uint8(g), uint8(b)
 
 	return color.RGBToYCbCr(r8, g8, b8)
