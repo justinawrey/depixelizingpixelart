@@ -204,12 +204,24 @@ func (n2 *node2) unfold() (tl, tr, bl, br *Node) {
 
 func (n2 *node2) isFullyConnected() bool {
 	tl, tr, bl, br := n2.unfold()
-	return tl.hasEdge(e) && tr.hasEdge(s) && br.hasEdge(w) && bl.hasEdge(n) && tl.hasEdge(se) && bl.hasEdge(ne)
+
+	return tl.hasEdge(e) &&
+		tr.hasEdge(s) &&
+		br.hasEdge(w) &&
+		bl.hasEdge(n) &&
+		tl.hasEdge(se) &&
+		bl.hasEdge(ne)
 }
 
 func (n2 *node2) isProblematic() bool {
 	tl, tr, bl, br := n2.unfold()
-	return !tl.hasEdge(e) && !tr.hasEdge(s) && !br.hasEdge(w) && !bl.hasEdge(n) && tl.hasEdge(se) && bl.hasEdge(ne)
+
+	return !tl.hasEdge(e) &&
+		!tr.hasEdge(s) &&
+		!br.hasEdge(w) &&
+		!bl.hasEdge(n) &&
+		tl.hasEdge(se) &&
+		bl.hasEdge(ne)
 }
 
 func (n2 *node2) curvesHeuristic(first, second *Node, dir int) (weight int) {
@@ -242,7 +254,9 @@ func (n2 *node2) getWeight(dir int) int {
 		second = tr
 	}
 
-	return n2.curvesHeuristic(first, second, dir) + n2.sparsePixelsHeuristic(first, second, dir) + n2.islandsHeuristic(first, second, dir)
+	return n2.curvesHeuristic(first, second, dir) +
+		n2.sparsePixelsHeuristic(first, second, dir) +
+		n2.islandsHeuristic(first, second, dir)
 }
 
 func (n2 *node2) removeSEDiagonal() {
