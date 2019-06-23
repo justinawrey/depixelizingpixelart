@@ -84,7 +84,10 @@ func (g Graph) traverse2(onEach func(n2 *node2)) {
 }
 
 func (g Graph) hasNodeAt(i, j int) bool {
-	return j < g.H && i < g.W
+	return j >= 0 &&
+		i >= 0 &&
+		j < g.H &&
+		i < g.W
 }
 
 func (g Graph) DisconnectDissimilar() {
